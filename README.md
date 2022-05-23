@@ -57,7 +57,14 @@ $ npm run test:e2e
 # test coverage
 $ npm run test:cov
 ```
-
+## ThunderClient 
+User ThunderClient for test endpoints.
+Name: Thunder Client
+Id: rangav.vscode-thunder-client
+Description: Lightweight Rest API Client for VS Code
+Version: 1.16.4
+Publisher: Ranga Vadhineni
+VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=rangav.vscode-thunder-client
 ## Support
 
 Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
