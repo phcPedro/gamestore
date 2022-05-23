@@ -14,7 +14,7 @@ export class UserService{
     return user;
   }
   findAll() {
-    return"FindAll";
+    return this.users;
   }
 
 }
