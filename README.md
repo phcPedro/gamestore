@@ -23,6 +23,9 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
+Clone o repostiorio! Não sabe como clonar? https://docs.github.com/pt/repositories/creating-and-managing-repositories/cloning-a-repository
+
+Em construção, em breve mais informações sobre a aplicação!
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
