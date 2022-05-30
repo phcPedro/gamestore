@@ -10,13 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Table{
+model Userdb{
   id String @id @default(uuid())
   name String
   nickname String @unique
   email String @unique
   password String
-  CPF String @unique
+  cpf String @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
