@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common";
 import {ApiOperation, ApiTags} from '@nestjs/swagger';
 import {MakeUserDto } from "./dto/create-user-dto";
+import { UpdateUserDto } from "./dto/update-user-dto";
 import { User } from "./entities/user.entity";
 
 import { UserService } from "./user.service";
@@ -34,6 +35,14 @@ export class UserController {
   })
   create(@Body()dto: MakeUserDto): Promise<User>{
     return this.userService.create(dto);
+
+  }
+  @Patch(':id')
+  @ApiOperation({
+    summary: 'Editar um usuario já cadastrado.'
+  })
+  update(@Param('id')id: string, @Body()dto: UpdateUserDto): Promise<User>{
+    return this.userService.update(id,dto);
 
   }
 
