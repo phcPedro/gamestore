@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
@@ -46,8 +47,8 @@ export class GamesService {
 
   async delete(id: string) {
     await this.findById(id);
-
     await this.prisma.gamesdb.delete({ where: { id } });
+    throw new HttpException('',204);
   }
 
   handleError(error: Error): undefined{

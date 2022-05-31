@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsString, Length } from "class-validator";
+import { IsNumber, IsPositive, IsString, IsUrl, Length } from "class-validator";
 
 export class CreateGameDto {
   @IsString()
@@ -7,9 +7,9 @@ export class CreateGameDto {
     description:'Titulo do game.',
     example:'Castlevania Symphony of the Night'
 })
-  title: string;
+ title: string;
 
-  @IsString()
+  @IsUrl()
   @ApiProperty({
     description:'Url da imagem do jogo.',
     example:'https://upload.wikimedia.org/wikipedia/pt/e/e0/Castlevania_Symphony_of_the_Night_Capa.jpg'
@@ -23,38 +23,31 @@ export class CreateGameDto {
 })
   description: string;
 
-  @IsNumber({
-    maxDecimalPlaces: 4,
-  })
-  @Length(4)
+  @IsNumber()
+  @IsPositive()
   @ApiProperty({
     description:'Ano em que o jogo foi lançado.',
-    example:'1997'
+    example:1997
 })
   year: number;
 
-  @IsNumber({
-    maxDecimalPlaces: 1,
-  })
-  @Length(2)
+  @IsNumber()
+  @IsPositive()
   @ApiProperty({
     description:'IMDB do game.',
-    example:'9,2'
+    example:5
 })
   imdScore: number;
 
-  @IsString()
+  @IsUrl()
   @ApiProperty({
     description:'Url para o trailer do game.',
     example:'https://youtu.be/wDE34DggEw4'
 })
   trailerYoutubeUrl: string;
 
-  @ApiProperty({
-    description:'Url para o trailer do game.',
-    example:'https://youtu.be/wDE34DggEw4'
-})
-@IsString()
+
+@IsUrl()
 @ApiProperty({
   description:'Url para uma gameplay do game.',
   example:'https://youtu.be/axcmkEX7v3I'

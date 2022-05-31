@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateGenderDto } from './dto/create-gender.dto';
 import { UpdateGenderDto } from './dto/update-gender.dto';
@@ -46,8 +46,8 @@ export class GendersService {
 
   async delete(id: string) {
     await this.findById(id);
-
     await this.prisma.genders.delete({ where: { id } });
+    throw new HttpException('',204);
   }
 
   handleError(error: Error): undefined{
