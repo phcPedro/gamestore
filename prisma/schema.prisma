@@ -10,13 +10,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Table{
+model Userdb{
   id String @id @default(uuid())
   name String
   nickname String @unique
   email String @unique
   password String
-  CPF String @unique
+  cpf String @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Gamesdb{
+  id String @id @default(uuid())
+  title String @unique
+  coverImageUrl String @unique
+  description String
+  year Int
+  imdScore Int
+  trailerYoutubeUrl String
+  gamePlayYoutubeUrl String
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Genders{
+  id String @id @default(uuid())
+  name String @unique
 }
