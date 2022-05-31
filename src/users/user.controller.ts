@@ -58,6 +58,6 @@ export class UserController {
     summary: 'Excluir um usuario.',
   })
   delete(@Param('id') id: string) {
-    this.userService.delete(id);
+    return this.userService.delete(id);
   }
 }
