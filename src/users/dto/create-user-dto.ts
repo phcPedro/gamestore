@@ -35,6 +35,12 @@ email: string;
   example: "123@Teste."
 })
 password: string;
+
+@ApiProperty({
+  description:"A confirmação da senha deve ser igual a senha",
+  example:"123@Teste."
+})
+confirmPassword:string;
 @ApiProperty({
   description: "Coloque seu cpf, sem ponto ou traço só numeros.",
   example: "12312312312"

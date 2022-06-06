@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   HttpException,
   Injectable,
   NotFoundException,
@@ -8,6 +9,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { MakeUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { User } from './entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -25,8 +27,15 @@ export class UserService {
     return record;
   }
 
-  create(dto: MakeUserDto): Promise<User> {
-    const data: User = { ...dto };
+  async create(dto: MakeUserDto): Promise<User> {
+    if(dto.password != dto.confirmPassword){
+      throw new BadRequestException('As senhas não coincidem! As senhas precisam ser iguais.');
+    }
+
+    delete dto.confirmPassword;
+
+    const data: User = { ...dto, password: await bcrypt.hash(dto.password, 10) };
+
     return this.prisma.userdb.create({ data }).catch(this.handleError);
   }
 
@@ -40,7 +49,20 @@ export class UserService {
 
   async update(id: string, dto: UpdateUserDto): Promise<User> {
     await this.findById(id);
+
+    if(dto.password){
+      if (dto.password != dto.confirmPassword){
+        throw new BadRequestException('As senhas não coincidem! As senhas precisam ser iguais.');
+      }
+    }
+
+    delete dto.confirmPassword;
+
     const data: Partial<User> = { ...dto };
+
+    if(data.password){
+      data.password = await bcrypt.hash(data.password, 10);
+    }
 
     return this.prisma.userdb
       .update({
@@ -60,6 +82,12 @@ export class UserService {
   handleError(error: Error): undefined {
     const errorLines = error.message.split('\n');
     const lastErrorLine = errorLines[errorLines.length - 1]?.trim();
+
+
+     if (!lastErrorLine){
+       console.error(error);
+     }
+
     throw new UnprocessableEntityException(
       lastErrorLine || 'Algum error ocorreu ao executar a operação!',
     );
