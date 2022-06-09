@@ -23,19 +23,33 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
-##Clone o repostiorio! 
+Clone o repostiorio! 
 
-##Clique no botão verde na parte superior
+Clique no botão verde na parte superior
 
 ![title](https://docs.github.com/assets/cb-20363/images/help/repository/code-button.png)
 
-##Copie a URL.
+Copie a URL.
 https://github.com/phcPedro/gamestore.git
 
+Abra o Git Bash.
+
+Escolha o diretorio onde ficará salvo o seu trabalho.
+
+Digite ```git clone``` e cole a URL que você copiou anteriormente.
+```$ git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY```
+
+Pressione Enter e pronto! repositorio clonado.
+
+Caso precise de ajuda por favor entre em contato comigo.
+
+instagram: https://www.instagram.com/pedrooh_camara/
+Me mande um Email: pedroohenrique.pedro@gmail.com
 
 
 
-##Em construção, em breve mais informações sobre a aplicação!
+
+Em construção, em breve mais informações sobre a aplicação!
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
