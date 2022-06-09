@@ -23,7 +23,16 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
-Clone o repostiorio! Não sabe como clonar? https://docs.github.com/pt/repositories/creating-and-managing-repositories/cloning-a-repository
+Clone o repostiorio! 
+
+Clique no botão verde na parte superior
+[image]:https://docs.github.com/assets/cb-20363/images/help/repository/code-button.png
+
+Copie a URL.
+https://github.com/phcPedro/gamestore.git
+
+
+
 
 Em construção, em breve mais informações sobre a aplicação!
 
