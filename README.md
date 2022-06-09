@@ -23,18 +23,19 @@
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
 ## Description
-Clone o repostiorio! 
+##Clone o repostiorio! 
 
-Clique no botão verde na parte superior
-[image]:https://docs.github.com/assets/cb-20363/images/help/repository/code-button.png
+##Clique no botão verde na parte superior
 
-Copie a URL.
+![title](images/https://docs.github.com/assets/cb-20363/images/help/repository/code-button.png)
+
+##Copie a URL.
 https://github.com/phcPedro/gamestore.git
 
 
 
 
-Em construção, em breve mais informações sobre a aplicação!
+##Em construção, em breve mais informações sobre a aplicação!
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
