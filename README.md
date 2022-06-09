@@ -27,7 +27,7 @@
 
 ##Clique no botão verde na parte superior
 
-![title](images/https://docs.github.com/assets/cb-20363/images/help/repository/code-button.png)
+![title](https://docs.github.com/assets/cb-20363/images/help/repository/code-button.png)
 
 ##Copie a URL.
 https://github.com/phcPedro/gamestore.git
