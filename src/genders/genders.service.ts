@@ -2,13 +2,13 @@ import { HttpException, Injectable, NotFoundException, UnprocessableEntityExcept
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateGenderDto } from './dto/create-gender.dto';
 import { UpdateGenderDto } from './dto/update-gender.dto';
-import { Gender } from './entities/gender.entity';
+import { Genders } from './entities/genders.entity';
 
 @Injectable()
 export class GendersService {
   constructor(private readonly prisma: PrismaService) {}
 
-   async findById(id: string): Promise<Gender> {
+   async findById(id: string): Promise<Genders> {
     const record = await this.prisma.genders.findUnique({
       where: { id },
     });
@@ -20,23 +20,23 @@ export class GendersService {
     return record;
   }
 
-  create(dto: CreateGenderDto): Promise<Gender> {
-    const data: Gender = { ...dto };
+  create(dto: CreateGenderDto): Promise<Genders> {
+    const data: Genders = { ...dto };
     return this.prisma.genders.create({ data }).catch(this.handleError);
 
   };
 
-  async findOne(id: string): Promise<Gender> {
+  async findOne(id: string): Promise<Genders> {
     return this.findById(id);
   }
 
-  findAll(): Promise<Gender[]> {
+  findAll(): Promise<Genders[]> {
     return this.prisma.genders.findMany();
   }
 
-  async update(id: string, dto: UpdateGenderDto): Promise<Gender> {
+  async update(id: string, dto: UpdateGenderDto): Promise<Genders> {
     await this.findById(id);
-    const data: Partial<Gender> = { ...dto };
+    const data: Partial<Genders> = { ...dto };
 
     return this.prisma.genders.update({
       where: { id },

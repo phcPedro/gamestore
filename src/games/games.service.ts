@@ -1,6 +1,8 @@
 import { HttpException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { PrismaService } from 'src/prisma/prisma.service';
+import { handleError } from 'src/utils/handle-error.util';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { Game } from './entities/game.entity';
@@ -9,7 +11,7 @@ import { Game } from './entities/game.entity';
 export class GamesService {
   constructor(private readonly prisma: PrismaService) {}
 
-   async findById(id: string): Promise<Game> {
+  async findById(id: string): Promise<Game> {
     const record = await this.prisma.gamesdb.findUnique({
       where: { id },
     });
@@ -21,10 +23,23 @@ export class GamesService {
     return record;
   }
 
-  create(dto: CreateGameDto): Promise<Game> {
-    const data: Game = { ...dto };
-    return this.prisma.gamesdb.create({ data }).catch(this.handleError);
-
+  async create(dto: CreateGameDto){
+    const data : Prisma.GamesdbCreateInput = {
+      title: dto.title,
+      coverImageUrl: dto.coverImageUrl,
+      description: dto.description,
+      year: dto.year,
+      imdScore: dto.imdScore,
+      trailerYoutubeUrl: dto.trailerYoutubeUrl,
+      gamePlayYoutubeUrl: dto.gamePlayYoutubeUrl,
+      gender:{
+        connectOrCreate:{
+          create: {name: dto.gender},
+          where: {name: dto.gender},
+        },
+      },
+    }
+   return await this.prisma.gamesdb.create({data}).catch(handleError);
   };
 
   async findOne(id: string): Promise<Game> {
@@ -37,7 +52,7 @@ export class GamesService {
 
   async update(id: string, dto: UpdateGameDto): Promise<Game> {
     await this.findById(id);
-    const data: Partial<Game> = { ...dto };
+    const data = { ...dto };
 
     return this.prisma.gamesdb.update({
       where: { id },

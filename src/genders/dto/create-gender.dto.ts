@@ -5,7 +5,7 @@ export class CreateGenderDto {
   @IsString()
   @ApiProperty({
     description:'Nome do gênero de jogos.',
-    example:'MetroidVania'
+    example:'Plataforma, fantasia'
   })
-  name:string;
+  name: string;
 }
