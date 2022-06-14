@@ -16,7 +16,7 @@ name: string;
 @IsString()
 @ApiProperty({
   description: "O nickname do usuario pode conter no minimo 3 caracteres e no maximo 15.",
-  example: "JordanC92"
+  example: "pedrohenrique"
 })
 nickname: string;
 @IsEmail()
@@ -32,9 +32,15 @@ email: string;
 })
 @ApiProperty({
   description: "Senha do usuario para afetur o login.",
-  example: "123@Teste."
+  example: "Pedro123@"
 })
 password: string;
+
+@ApiProperty({
+  description:"A confirmação da senha deve ser igual a senha",
+  example:"Pedro123@"
+})
+confirmPassword:string;
 @ApiProperty({
   description: "Coloque seu cpf, sem ponto ou traço só numeros.",
   example: "12312312312"

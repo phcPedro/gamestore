@@ -1,51 +1,61 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Userdb } from '@prisma/client';
+import { LoggedUser } from 'src/auth/logged-user.decorator';
+import { CreateGenderDto} from './dto/create-gender.dto';
+import { Genders } from './entities/genders.entity';
 import { GendersService } from './genders.service';
-import { CreateGenderDto } from './dto/create-gender.dto';
-import { UpdateGenderDto } from './dto/update-gender.dto';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
-@ApiTags('genders')
-@Controller('genders')
+@ApiTags('game-genre')
+@Controller('genre')
 export class GendersController {
-  constructor(private readonly gendersService: GendersService) {}
+  constructor(private readonly genreService: GendersService) {}
 
   @Post()
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Cria um gênero de game.',
+    summary: 'Criar novo Gênero.',
   })
-  create(@Body() createGenderDto: CreateGenderDto) {
-    return this.gendersService.create(createGenderDto);
+  create(
+    @LoggedUser() user: Userdb,
+    @Body() dto: CreateGenderDto,
+  ): Promise<Genders> {
+    return this.genreService.create(user, dto);
   }
 
   @Get()
   @ApiOperation({
-    summary: 'Listar todos os gêneros de games.',
+    summary: 'Listar todos os Gêneros.',
   })
-  findAll() {
-    return this.gendersService.findAll();
+  findAll(): Promise<Genders[]> {
+    return this.genreService.findAll();
   }
 
-  @Get(':id')
+  @Get(':name')
   @ApiOperation({
-    summary: 'Localiza um gênero por ID.',
+    summary: 'Visualizar um gênero pelo nome.',
   })
-  findOne(@Param('id') id: string) {
-    return this.gendersService.findOne(id);
+  findOne(@Param('name') name: string): Promise<Genders> {
+    return this.genreService.findOne(name);
   }
 
-  @Patch(':id')
+  @Delete(':name')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Atualiza um gênero por ID.',
+    summary: 'Deletar gênero pelo nome.',
   })
-  update(@Param('id') id: string, @Body() updateGenderDto: UpdateGenderDto) {
-    return this.gendersService.update(id, updateGenderDto);
-  }
-
-  @Delete(':id')
-  @ApiOperation({
-    summary: 'Deleta um gênero por ID.',
-  })
-  delete(@Param('id') id: string) {
-    return this.gendersService.delete(id);
+  delete(@LoggedUser() user: Userdb, @Param('name') name: string) {
+    return this.genreService.delete(user, name);
   }
 }

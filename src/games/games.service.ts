@@ -1,6 +1,11 @@
 import { HttpException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from 'src/users/entities/user.entity';
+import { handleError } from 'src/utils/handle-error.util';
+import { isAdmin } from 'src/utils/isAdmin';
+import { notFound } from 'src/utils/notfound-error';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { Game } from './entities/game.entity';
@@ -9,7 +14,7 @@ import { Game } from './entities/game.entity';
 export class GamesService {
   constructor(private readonly prisma: PrismaService) {}
 
-   async findById(id: string): Promise<Game> {
+  async findById(id: string): Promise<Game> {
     const record = await this.prisma.gamesdb.findUnique({
       where: { id },
     });
@@ -21,39 +26,131 @@ export class GamesService {
     return record;
   }
 
-  create(dto: CreateGameDto): Promise<Game> {
-    const data: Game = { ...dto };
-    return this.prisma.gamesdb.create({ data }).catch(this.handleError);
-
+  async create(user: User, dto: CreateGameDto){
+    const data : Prisma.GamesdbCreateInput = {
+      title: dto.title,
+      coverImageUrl: dto.coverImageUrl,
+      description: dto.description,
+      year: dto.year,
+      imdScore: dto.imdScore,
+      trailerYoutubeUrl: dto.trailerYoutubeUrl,
+      gamePlayYoutubeUrl: dto.gamePlayYoutubeUrl,
+      gender:{
+        connect:{
+         name: this.dataTreatment(dto.gender),
+        },
+      },
+    }
+   return await this.prisma.gamesdb.create({data}).catch(handleError);
   };
 
   async findOne(id: string): Promise<Game> {
-    return this.findById(id);
-  }
-
-  findAll(): Promise<Game[]> {
-    return this.prisma.gamesdb.findMany();
-  }
-
-  async update(id: string, dto: UpdateGameDto): Promise<Game> {
-    await this.findById(id);
-    const data: Partial<Game> = { ...dto };
-
-    return this.prisma.gamesdb.update({
+    const record = await this.prisma.gamesdb.findUnique({
       where: { id },
-      data,
-    }).catch(this.handleError);
+      select: {
+        id: true,
+        title: true,
+        coverImageUrl: true,
+        gender: {
+          select: {
+            name: true,
+          },
+        },
+        imdScore: true,
+        description: true,
+        year: true,
+        trailerYoutubeUrl: true,
+        gamePlayYoutubeUrl: true,
+        _count: {
+          select: {
+            profiles: true,
+          },
+        },
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    notFound(record, id);
+
+    return record;
   }
 
-  async delete(id: string) {
-    await this.findById(id);
-    await this.prisma.gamesdb.delete({ where: { id } });
-    throw new HttpException('',204);
+  async findAll(): Promise<Game[]> {
+    const gameList = await this.prisma.gamesdb.findMany({
+      select: {
+        id: true,
+        title: true,
+        coverImageUrl: true,
+        gender: {
+          select: {
+            name: true,
+          },
+        },
+        imdScore: true,
+        description: true,
+        year: true,
+        trailerYoutubeUrl: true,
+        gamePlayYoutubeUrl: true,
+        _count: {
+          select: {
+            profiles: true,
+          },
+        },
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (gameList.length === 0) {
+      throw new NotFoundException('Não existem jogos cadastrados.');
+    }
+    return gameList;
+  }
+  async update(user: User, id: string, dto: UpdateGameDto): Promise<Game> {
+    isAdmin(user);
+
+    await this.findOne(id);
+
+    const data = {
+      title: dto.title,
+      coverImageUrl: dto.coverImageUrl,
+      description: dto.description,
+      year: dto.year,
+      imdbScore: dto.imdScore,
+      trailerYouTubeUrl: dto.trailerYoutubeUrl,
+      gameplayYouTubeUrl: dto.gamePlayYoutubeUrl,
+      genres: {
+        connect: {
+          name: this.dataTreatment(dto.gender),
+        },
+      },
+    };
+
+    return this.prisma.gamesdb
+      .update({
+        where: { id },
+        data,
+      })
+      .catch(handleError);
   }
 
-  handleError(error: Error): undefined{
-     const errorLines = error.message.split('\n');
-     const lastErrorLine = errorLines[errorLines.length - 1]?.trim();
-     throw new UnprocessableEntityException(lastErrorLine || "Algum error ocorreu ao executar a operação!");
+  async delete(user: User, id: string) {
+    isAdmin(user);
+
+    await this.findOne(id);
+
+    await this.prisma.gamesdb.delete({
+      where: {id},
+
+    });
+    throw new HttpException('Deletado com sucesso.', 204);
+  }
+
+  dataTreatment(data: string) {
+    return data
+      .normalize('NFD')
+      .replace(/[^a-zA-Zs]/g, '')
+      .toLowerCase();
   }
 }

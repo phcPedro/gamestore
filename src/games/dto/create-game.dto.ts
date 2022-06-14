@@ -9,6 +9,13 @@ export class CreateGameDto {
 })
  title: string;
 
+ @IsString()
+ @ApiProperty({
+   description:'Gênero do jogo.',
+   example:'Metroidvania',
+})
+gender: string;
+
   @IsUrl()
   @ApiProperty({
     description:'Url da imagem do jogo.',

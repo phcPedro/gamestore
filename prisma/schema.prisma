@@ -17,13 +17,18 @@ model Userdb{
   email String @unique
   password String
   cpf String @unique
+  isAdmin Boolean @default(false) @map("isAdmin")
+  profiles Profile[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("user")
 }
 
 model Gamesdb{
   id String @id @default(uuid())
   title String @unique
+  gender Genders[]
   coverImageUrl String @unique
   description String
   year Int
@@ -32,11 +37,57 @@ model Gamesdb{
   gamePlayYoutubeUrl String
 
 
+  profiles GameProfile[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("game")
+}
+
+model GameProfile {
+  id String @id @default(uuid())
+
+  profile Profile @relation(fields: [profileId], references: [id])
+  profileId String @map("idProfile")
+
+  favorite Boolean @default(false)
+
+  game Gamesdb @relation(fields: [gameId], references: [id])
+  gameId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("gameprofile")
+
 }
 
 model Genders{
   id String @id @default(uuid())
+
   name String @unique
+
+  games Gamesdb[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("gender")
+}
+
+model Profile{
+  id String @id @default(uuid())
+
+  title String
+  imageUrl String
+  user Userdb @relation(fields: [userId], references: [id])
+  userId String
+  games GameProfile[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("profile")
+
 }
