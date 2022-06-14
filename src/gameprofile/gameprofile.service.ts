@@ -43,7 +43,7 @@ export class GameprofileService {
     return `This action returns all gameprofile`;
   }
 
-  async findOne(profileId: string){
+  async findOne(userId: string, profileId: string){
     const record = await this.prisma.gameProfile.findMany({
       where: {profileId},
       select:{
@@ -88,6 +88,7 @@ export class GameprofileService {
       where:{id},
 
     });
+    notFound(record, id);
     throw new HttpException("Excluido com exito",204);
   }
 }

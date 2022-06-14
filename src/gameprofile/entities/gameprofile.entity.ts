@@ -3,6 +3,6 @@ import { Game } from "src/games/entities/game.entity";
 
 export class Gameprofile {
   gameId:Game;
-  profileid:Profile;
+  profileId:Profile;
   favorite: boolean;
 }

@@ -1,20 +1,24 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { GameprofileService } from './gameprofile.service';
 import { CreateGameprofileDto } from './dto/create-gameprofile.dto';
 import { UpdateGameprofileDto } from './dto/update-gameprofile.dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import { LoggedUser } from 'src/auth/logged-user.decorator';
+import { Userdb } from '@prisma/client';
 
 @ApiTags("gamesprofile")
 @Controller('gameprofile')
 export class GameprofileController {
   constructor(private readonly gameprofileService: GameprofileService) {}
 
+  @UseGuards(AuthGuard())
   @Post()
   @ApiOperation({
     summary:"Adicina o game ao perfil."
   })
-  create(@Body() createGameprofileDto: CreateGameprofileDto) {
-    return this.gameprofileService.create(createGameprofileDto);
+  create(@Body() dto: CreateGameprofileDto) {
+    return this.gameprofileService.create(dto);
   }
 
   @Get()
@@ -27,8 +31,8 @@ export class GameprofileController {
 
   @Get(':id')
 
-  findOne(@Param('id') id: string) {
-    return this.gameprofileService.findOne(id);
+  findOne(@LoggedUser() user: Userdb, @Param('profileId') profileId: string) {
+    return this.gameprofileService.findOne(user.id, profileId);
   }
 
   @Patch(':id')
