@@ -2,7 +2,9 @@ import { HttpException, Injectable, NotFoundException, UnprocessableEntityExcept
 import { Prisma } from '@prisma/client';
 
 import { PrismaService } from 'src/prisma/prisma.service';
+import { User } from 'src/users/entities/user.entity';
 import { handleError } from 'src/utils/handle-error.util';
+import { isAdmin } from 'src/utils/isAdmin';
 import { notFound } from 'src/utils/notfound-error';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
@@ -24,7 +26,7 @@ export class GamesService {
     return record;
   }
 
-  async create(dto: CreateGameDto){
+  async create(user: User, dto: CreateGameDto){
     const data : Prisma.GamesdbCreateInput = {
       title: dto.title,
       coverImageUrl: dto.coverImageUrl,
@@ -34,9 +36,8 @@ export class GamesService {
       trailerYoutubeUrl: dto.trailerYoutubeUrl,
       gamePlayYoutubeUrl: dto.gamePlayYoutubeUrl,
       gender:{
-        connectOrCreate:{
-          create: {name: dto.gender},
-          where: {name: dto.gender},
+        connect:{
+         name: this.dataTreatment(dto.gender),
         },
       },
     }
@@ -75,29 +76,81 @@ export class GamesService {
     return record;
   }
 
-  findAll(): Promise<Game[]> {
-    return this.prisma.gamesdb.findMany();
+  async findAll(): Promise<Game[]> {
+    const gameList = await this.prisma.gamesdb.findMany({
+      select: {
+        id: true,
+        title: true,
+        coverImageUrl: true,
+        gender: {
+          select: {
+            name: true,
+          },
+        },
+        imdScore: true,
+        description: true,
+        year: true,
+        trailerYoutubeUrl: true,
+        gamePlayYoutubeUrl: true,
+        _count: {
+          select: {
+            profiles: true,
+          },
+        },
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (gameList.length === 0) {
+      throw new NotFoundException('Não existem jogos cadastrados.');
+    }
+    return gameList;
+  }
+  async update(user: User, id: string, dto: UpdateGameDto): Promise<Game> {
+    isAdmin(user);
+
+    await this.findOne(id);
+
+    const data = {
+      title: dto.title,
+      coverImageUrl: dto.coverImageUrl,
+      description: dto.description,
+      year: dto.year,
+      imdbScore: dto.imdScore,
+      trailerYouTubeUrl: dto.trailerYoutubeUrl,
+      gameplayYouTubeUrl: dto.gamePlayYoutubeUrl,
+      genres: {
+        connect: {
+          name: this.dataTreatment(dto.gender),
+        },
+      },
+    };
+
+    return this.prisma.gamesdb
+      .update({
+        where: { id },
+        data,
+      })
+      .catch(handleError);
   }
 
-  async update(id: string, dto: UpdateGameDto): Promise<Game> {
-    await this.findById(id);
-    const data = { ...dto };
+  async delete(user: User, id: string) {
+    isAdmin(user);
 
-    return this.prisma.gamesdb.update({
-      where: { id },
-      data,
-    }).catch(this.handleError);
+    await this.findOne(id);
+
+    await this.prisma.gamesdb.delete({
+      where: {id},
+
+    });
+    throw new HttpException('Deletado com sucesso.', 204);
   }
 
-  async delete(id: string) {
-    await this.findById(id);
-    await this.prisma.gamesdb.delete({ where: { id } });
-    throw new HttpException('',204);
-  }
-
-  handleError(error: Error): undefined{
-     const errorLines = error.message.split('\n');
-     const lastErrorLine = errorLines[errorLines.length - 1]?.trim();
-     throw new UnprocessableEntityException(lastErrorLine || "Algum error ocorreu ao executar a operação!");
+  dataTreatment(data: string) {
+    return data
+      .normalize('NFD')
+      .replace(/[^a-zA-Zs]/g, '')
+      .toLowerCase();
   }
 }

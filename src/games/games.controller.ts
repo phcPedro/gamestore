@@ -1,62 +1,75 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  HttpCode,
-  HttpStatus,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
-import { GamesService } from './games.service';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Userdb } from '@prisma/client';
+import { LoggedUser } from 'src/auth/logged-user.decorator';
+import { User } from 'src/users/entities/user.entity';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Game } from './entities/game.entity';
+import { GamesService } from './games.service';
 
-@ApiTags('games')
-@Controller('games')
+@ApiTags('game')
+@Controller('game')
 export class GamesController {
-  constructor(private readonly gamesService: GamesService) {}
+  constructor(private readonly gameService: GamesService) {}
 
   @Post()
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Cria um novo game.',
+    summary: '(Admin) Criar novo Jogo.',
   })
-  create(@Body() createGameDto: CreateGameDto) {
-    return this.gamesService.create(createGameDto);
+  create(@LoggedUser() user: User, @Body() dto: CreateGameDto): Promise<Game> {
+    return this.gameService.create(user, dto);
+  }
+
+  @Patch(':id')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Editar dados de um jogo pelo ID.',
+  })
+  update(
+    @LoggedUser() user: User,
+    @Param('id') id: string,
+    @Body() dto: UpdateGameDto,
+  ): Promise<Game> {
+    return this.gameService.update(user, id, dto);
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Deletar um jogo pelo ID.',
+  })
+  delete(@LoggedUser() user: User, @Param('id') id: string) {
+    return this.gameService.delete(user, id);
   }
 
   @Get()
   @ApiOperation({
-    summary: 'Lista todos os games já cadastrados.',
+    summary: 'Listar todos os jogos.',
   })
-  findAll() {
-    return this.gamesService.findAll();
+  findAll(): Promise<Game[]> {
+    return this.gameService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({
-    summary: 'Pega um unico game de acordo com seu ID.',
+    summary: 'Visualizar um jogo pelo ID.',
   })
-  findOne(@Param('id') id: string) {
-    return this.gamesService.findOne(id);
-  }
-
-  @Patch(':id')
-  @ApiOperation({
-    summary: 'Atualize ou modifica informações de um game pelo ID.',
-  })
-  update(@Param('id') id: string, @Body() updateGameDto: UpdateGameDto) {
-    return this.gamesService.update(id, updateGameDto);
-  }
-
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({
-    summary: 'Deleta um game pelo ID.',
-  })
-  delete(@Param('id') id: string) {
-   return this.gamesService.delete(id);
+  findOne(@Param('id') id: string): Promise<Game> {
+    return this.gameService.findOne(id);
   }
 }
