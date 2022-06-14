@@ -8,19 +8,14 @@ export class CreateProfileDto {
   description:"Nome do perfil. Deve conter no minimo 3 caracteres e maximo 10.",
   example:"Lord_Pedro"
 })
-title: String;
+title: string;
 
 @IsUrl()
 @ApiProperty({
   description:"Url para foto do perfil",
   example:"https://avatars.githubusercontent.com/u/68974506?v=4"
 })
-imageUrl: String;
+imageUrl: string;
 
-@IsUUID()
-@ApiProperty({
-  description:"Id referente ao usuario desse perfil.",
-  example:""
-})
-userId: String;
+
 }

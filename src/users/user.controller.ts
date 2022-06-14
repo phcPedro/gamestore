@@ -8,56 +8,106 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { MakeUserDto } from './dto/create-user-dto';
-import { UpdateUserDto } from './dto/update-user-dto';
-import { User } from './entities/user.entity';
-
 import { UserService } from './user.service';
+import { MakeUserDto } from './dto/create-user-dto';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { User } from './entities/user.entity';
+import { UpdateUserDto } from './dto/update-user-dto';
+import { AuthGuard } from '@nestjs/passport';
+import { LoggedUser } from 'src/auth/logged-user.decorator';
+import { UpdateAdminDto } from './dto/updateadmin-dto';
+
+
 
 @ApiTags('user')
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private userService: UserService) {}
 
-  @Get()
+  @ApiTags('user-admin')
+  @Get('user')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Listar todos os usuarios.',
+    summary: 'Listar todos os usuários.',
   })
-  findAll(): Promise<User[]> {
-    return this.userService.findAll();
+  findAll(@LoggedUser() user: User) {
+    return this.userService.findAll(user);
+  }
+  @ApiTags('user-admin')
+  @Delete('user/:id')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Deletar conta de usuário por Id .',
+  })
+  remove(@LoggedUser() user: User, @Param('id') id: string) {
+    return this.userService.remove(user, id);
   }
 
-  @Get(':id')
+  @ApiTags('user-admin')
+  @Get('user/:id')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Procurar um usuario cadastrado pelo ID.',
+    summary: 'Visualizar um usuário pelo ID.',
   })
-  findOne(@Param('id') id: string): Promise<User> {
-    return this.userService.findOne(id);
+  findOne(@LoggedUser() user: User, @Param('id') id: string) {
+    return this.userService.findOne(user, id);
+  }
+  @ApiTags('user-admin')
+  @Patch('user/:id')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Privilegios de Admin para o ID.',
+  })
+  takeAuth(
+    @LoggedUser() user: User,
+    @Body() dto: UpdateAdminDto,
+    @Param('id') id: string,
+  ) {
+    return this.userService.takeAuth(user, dto, id);
   }
 
   @Post()
   @ApiOperation({
     summary: 'Cadastrar um novo usuario.',
   })
-  create(@Body() dto: MakeUserDto): Promise<User> {
+  create(@Body() dto: MakeUserDto){
     return this.userService.create(dto);
   }
-  @Patch(':id')
+  @ApiTags('user-my-account')
+  @Get('/my-account')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Editar um usuario já cadastrado.',
+    summary: 'Visualizar informações da conta Logada.',
   })
-  update(@Param('id') id: string, @Body() dto: UpdateUserDto): Promise<User> {
-    return this.userService.update(id, dto);
+  myAccount(@LoggedUser() user: User) {
+    return this.userService.myAccount(user.id);
+  }
+  @ApiTags('user-my-account')
+  @Patch('/my-account')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Editar dados da conta do usuario',
+  })
+  update(@LoggedUser() user: User, @Body() dto: UpdateUserDto) {
+    return this.userService.update(user.id, dto);
   }
 
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiTags('user-my-account')
+  @Delete('/my-account')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   @ApiOperation({
-    summary: 'Excluir um usuario.',
+    summary: 'excluir a conta do usuario.',
   })
-  delete(@Param('id') id: string) {
-    return this.userService.delete(id);
+  delete(@LoggedUser() user: User) {
+    return this.userService.delete(user.id);
   }
 }

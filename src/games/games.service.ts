@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 
 import { PrismaService } from 'src/prisma/prisma.service';
 import { handleError } from 'src/utils/handle-error.util';
+import { notFound } from 'src/utils/notfound-error';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { Game } from './entities/game.entity';
@@ -43,7 +44,35 @@ export class GamesService {
   };
 
   async findOne(id: string): Promise<Game> {
-    return this.findById(id);
+    const record = await this.prisma.gamesdb.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        title: true,
+        coverImageUrl: true,
+        gender: {
+          select: {
+            name: true,
+          },
+        },
+        imdScore: true,
+        description: true,
+        year: true,
+        trailerYoutubeUrl: true,
+        gamePlayYoutubeUrl: true,
+        _count: {
+          select: {
+            profiles: true,
+          },
+        },
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    notFound(record, id);
+
+    return record;
   }
 
   findAll(): Promise<Game[]> {
