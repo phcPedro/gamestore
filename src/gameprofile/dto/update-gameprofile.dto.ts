@@ -5,7 +5,7 @@ import {IsBoolean} from 'class-validator';
 class FavoriteGame{
   @IsBoolean()
   @ApiProperty({
-    description:"Favoritar perfil.",
+    description:"Favoritar um game ao perfil.",
     example:true
   })
   favorite: boolean;

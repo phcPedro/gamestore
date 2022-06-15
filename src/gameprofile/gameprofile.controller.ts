@@ -1,15 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
 import { GameprofileService } from './gameprofile.service';
 import { CreateGameprofileDto } from './dto/create-gameprofile.dto';
 import { UpdateGameprofileDto } from './dto/update-gameprofile.dto';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags("gamesprofile")
+@ApiBearerAuth()
+@UseGuards(AuthGuard())
 @Controller('gameprofile')
 export class GameprofileController {
   constructor(private readonly gameprofileService: GameprofileService) {}
 
-  @Post()
+  @Post('/profile/games')
   @ApiOperation({
     summary:"Adicina o game ao perfil."
   })
@@ -21,17 +24,15 @@ export class GameprofileController {
   @ApiOperation({
     summary:"Lista de todos os jogos favoritados pelo perfil."
   })
-  findAll() {
-    return this.gameprofileService.findAll();
-  }
 
-  @Get(':id')
+
+  @Get('homepage/:profileId')
 
   findOne(@Param('id') id: string) {
     return this.gameprofileService.findOne(id);
   }
 
-  @Patch(':id')
+  @Patch('profile/games/:profileGameId')
   @ApiOperation({
     summary:"Desfavoritar/favoritar um game."
   })
@@ -39,7 +40,7 @@ export class GameprofileController {
     return this.gameprofileService.update(id, updateGameprofileDto);
   }
 
-  @Delete(':id')
+  @Delete('profile/games/:profileGameId')
   @ApiOperation({
     summary:"Remove um game pelo ID."
   })

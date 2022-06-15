@@ -3,9 +3,12 @@ import { Prisma } from '@prisma/client';
 
 import { PrismaService } from 'src/prisma/prisma.service';
 import { handleError } from 'src/utils/handle-error.util';
+import { notFound } from 'src/utils/notfound-error';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { Game } from './entities/game.entity';
+import {isAdmin} from '../utils/admin';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class GamesService {
@@ -23,7 +26,9 @@ export class GamesService {
     return record;
   }
 
-  async create(dto: CreateGameDto){
+  async create(user : User, dto:CreateGameDto){
+    isAdmin(user)
+
     const data : Prisma.GamesdbCreateInput = {
       title: dto.title,
       coverImageUrl: dto.coverImageUrl,
@@ -43,27 +48,48 @@ export class GamesService {
   };
 
   async findOne(id: string): Promise<Game> {
-    return this.findById(id);
+    const record = await this.prisma.gamesdb.findUnique({ where: { id } });
+
+    notFound(record, id);
+    return record;
+
   }
 
-  findAll(): Promise<Game[]> {
-    return this.prisma.gamesdb.findMany();
+  async findAll(): Promise<Game[]> {
+    const list = await this.prisma.gamesdb.findMany();
+
+    if (list.length === 0) {
+      throw new NotFoundException(
+        'Não existem jogos cadastrados.',
+      );
+    }
+
+
+    return list;
   }
 
-  async update(id: string, dto: UpdateGameDto): Promise<Game> {
-    await this.findById(id);
+  async update(id: string, user:User, dto: UpdateGameDto): Promise<Game> {
+    isAdmin(user)
+    await this.findOne(id);
+
     const data = { ...dto };
 
-    return this.prisma.gamesdb.update({
-      where: { id },
-      data,
-    }).catch(this.handleError);
+    return this.prisma.gamesdb
+      .update({
+        where: { id },
+        data,
+      })
+      .catch(handleError);
   }
 
-  async delete(id: string) {
-    await this.findById(id);
-    await this.prisma.gamesdb.delete({ where: { id } });
-    throw new HttpException('',204);
+  async delete(id: string, user: User) {
+  isAdmin(user)
+  await this.findOne(id);
+
+  await this.prisma.gamesdb.delete({
+    where: {id},
+  })
+  throw new HttpException('Jogo deletado com exito!',204);
   }
 
   handleError(error: Error): undefined{

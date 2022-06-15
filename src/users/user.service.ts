@@ -10,25 +10,38 @@ import { MakeUserDto } from './dto/create-user-dto';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { User } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import { isAdmin } from 'src/utils/admin';
+import { notFound } from 'src/utils/notfound-error';
+import { handleError } from 'src/utils/handle-error.util';
 
 @Injectable()
+
+
 export class UserService {
+  private findById = {
+    id: true,
+    name: true,
+    nickname: true,
+    email: true,
+    password: false,
+    isAdmin: true,
+    cpf: true,
+    createdAt: true,
+    updatedAt: true,
+    }
   constructor(private readonly prisma: PrismaService) {}
 
-  async findById(id: string): Promise<User> {
+  async myAccount(userId: string) {
     const record = await this.prisma.userdb.findUnique({
-      where: { id },
+      where: { id: userId },
+      select: this.findById,
     });
-
-    if (!record) {
-      throw new NotFoundException(`O ID: ${id} não foi encontrado!`);
-    }
 
     return record;
   }
 
   async create(dto: MakeUserDto): Promise<User> {
-    if(dto.password != dto.confirmPassword){
+    if(dto.password !== dto.confirmPassword){
       throw new BadRequestException('As senhas não coincidem! As senhas precisam ser iguais.');
     }
 
@@ -36,19 +49,29 @@ export class UserService {
 
     const data: User = { ...dto, password: await bcrypt.hash(dto.password, 10) };
 
-    return this.prisma.userdb.create({ data }).catch(this.handleError);
+    return this.prisma.userdb.create({ data }).catch(handleError);
   }
 
-  async findOne(id: string): Promise<User> {
-    return this.findById(id);
+  async findOne(id: string, user:User){
+    isAdmin(user);
+    const record = await this.prisma.userdb.findUnique({
+      where: {id},
+      select: this.findById,
+    });
+
+    notFound(record, id);
+    return record;
   }
 
-  findAll(): Promise<User[]> {
-    return this.prisma.userdb.findMany();
+  async findAll(user: User){
+    isAdmin(user);
+    const list = await this.prisma.userdb.findMany({
+      select: this.findById,
+    })
   }
 
-  async update(id: string, dto: UpdateUserDto): Promise<User> {
-    await this.findById(id);
+  async update(userId: string, dto: UpdateUserDto): Promise<User> {
+     await this.myAccount(userId);
 
     if(dto.password){
       if (dto.password != dto.confirmPassword){
@@ -66,30 +89,27 @@ export class UserService {
 
     return this.prisma.userdb
       .update({
-        where: { id },
+        where: { id: userId },
         data,
       })
-      .catch(this.handleError);
+      .catch(handleError);
   }
 
-  async delete(id: string) {
-    await this.findById(id);
+  async delete(iduser: string) {
+    await this.myAccount(iduser);
 
-    await this.prisma.userdb.delete({ where: { id } });
-    throw new HttpException('', 204);
+    await this.prisma.userdb.delete({ where: { id: iduser } });
+    throw new HttpException('Deletado com exito!', 204);
   }
 
-  handleError(error: Error): undefined {
-    const errorLines = error.message.split('\n');
-    const lastErrorLine = errorLines[errorLines.length - 1]?.trim();
+  async deleteUser(id: string, user:User) {
+    isAdmin(user)
+    await this.findOne(id, user);
 
-
-     if (!lastErrorLine){
-       console.error(error);
-     }
-
-    throw new UnprocessableEntityException(
-      lastErrorLine || 'Algum error ocorreu ao executar a operação!',
-    );
+    await this.prisma.userdb.delete({
+      where: { id },
+    });
+    throw new HttpException('Usuário deletado com sucesso', 204);
   }
+
 }

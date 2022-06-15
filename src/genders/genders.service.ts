@@ -1,58 +1,74 @@
-import { HttpException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateGenderDto } from './dto/create-gender.dto';
 import { UpdateGenderDto } from './dto/update-gender.dto';
+import { PrismaService } from '../prisma/prisma.service';
 import { Genders } from './entities/genders.entity';
+import { Prisma, Userdb } from '@prisma/client';
+import { handleError } from '../utils/handle-error.util';
+import { notFound } from '../utils/notfound-error';
+import { dataTreatment } from 'src/utils/data_treatment';
+import { isAdmin } from 'src/utils/admin';
 
 @Injectable()
 export class GendersService {
   constructor(private readonly prisma: PrismaService) {}
 
-   async findById(id: string): Promise<Genders> {
-    const record = await this.prisma.genders.findUnique({
-      where: { id },
-    });
+  async create(dto: CreateGenderDto, user: Userdb): Promise<Genders> {
+    isAdmin(user)
+    const data: Prisma.GendersCreateInput = { name: dto.name };
 
-    if (!record) {
-      throw new NotFoundException(`O ID: ${id} não foi encontrado!`);
+    data.name = await dataTreatment(data.name);
+
+    return this.prisma.genders.create({ data }).catch(handleError);
+  }
+
+  async findAll(): Promise<Genders[]> {
+    const list = await this.prisma.genders.findMany();
+
+    if (list.length === 0) {
+      throw new NotFoundException(
+        'Não existem gêneros cadastrados. Que tal cadastrar o primeiro?',
+      );
     }
+    return list;
+  }
+
+  async findOne(id: string) {
+    const record = await this.prisma.genders.findUnique({ where: { id } });
+
+    notFound(record, id);
 
     return record;
   }
 
-  create(dto: CreateGenderDto): Promise<Genders> {
-    const data: Genders = { ...dto };
-    return this.prisma.genders.create({ data }).catch(this.handleError);
+  async update(id: string, dto: UpdateGenderDto, user: Userdb): Promise<Genders> {
+    isAdmin(user)
+    await this.findOne(id);
 
-  };
-
-  async findOne(id: string): Promise<Genders> {
-    return this.findById(id);
-  }
-
-  findAll(): Promise<Genders[]> {
-    return this.prisma.genders.findMany();
-  }
-
-  async update(id: string, dto: UpdateGenderDto): Promise<Genders> {
-    await this.findById(id);
     const data: Partial<Genders> = { ...dto };
 
-    return this.prisma.genders.update({
+    data.name = await dataTreatment(data.name);
+
+    return this.prisma.genders
+      .update({
+        where: { id },
+        data,
+      })
+      .catch(handleError);
+  }
+
+  async delete(id: string, user: Userdb) {
+    isAdmin(user)
+    await this.findOne(id);
+
+    await this.prisma.genders.delete({
       where: { id },
-      data,
-    }).catch(this.handleError);
-  }
-
-  async delete(id: string) {
-    await this.findById(id);
-    await this.prisma.genders.delete({ where: { id } });
-    throw new HttpException('',204);
-  }
-
-  handleError(error: Error): undefined{
-     const errorLines = error.message.split('\n');
-     const lastErrorLine = errorLines[errorLines.length - 1]?.trim();
-     throw new UnprocessableEntityException(lastErrorLine || "Algum error ocorreu ao executar a operação!");
+    });
+    throw new HttpException('Genero deletado com sucesso', 204);
   }
 }
